@@ -1,0 +1,110 @@
+{
+  "schema_version": "atck.pre_action_trust_contract.v0.1",
+  "contract_id": "atck-example:x402-spend-ceiling:v0.1",
+  "profile": "x402_spend_ceiling",
+  "action": {
+    "type": "paid_endpoint_call",
+    "summary": "Call an x402 or paid endpoint only after spend ceiling and abort policy are explicit.",
+    "risk_level": "high"
+  },
+  "actor": {
+    "id": "agent:buyer",
+    "kind": "agent"
+  },
+  "target": {
+    "name": "Example Paid API",
+    "kind": "paid_endpoint",
+    "uri": "https://paid.example.invalid/v1/search"
+  },
+  "required_before_action": {
+    "first_safe_call": "Read pricing, auth, quota, and refund semantics without payment.",
+    "auth_boundary": "Do not send wallet credentials or payment authorization in the contract check.",
+    "human_review_required": true,
+    "failure_mode_ref": "fm:spend-ceiling-missing",
+    "payload_ceiling_ref": "pc:paid-endpoint-small",
+    "spend_ceiling": "Block if estimated or actual spend exceeds 0.10 USD or if price is unavailable.",
+    "rollback_path": "Abort payment and retain only safe-to-log receipt id when price, quota, or refund route is missing."
+  },
+  "payload_ceiling": {
+    "schema_version": "atck.payload_ceiling.v0.1",
+    "payload_ceiling_id": "pc:paid-endpoint-small",
+    "limits": {
+      "request_body_bytes": 8192,
+      "response_body_bytes": 200000,
+      "tool_result_bytes": 200000,
+      "agent_trust_fetch_bytes": 200000
+    },
+    "overflow_policy": "human_review",
+    "safe_to_log": [
+      "request_id",
+      "estimated_price",
+      "currency",
+      "safe_to_log_receipt_id"
+    ],
+    "must_not_log": [
+      "wallet_private_key",
+      "payment_authorization",
+      "billing_address",
+      "card_data"
+    ]
+  },
+  "failure_modes": [
+    {
+      "schema_version": "atck.failure_mode.v0.1",
+      "failure_mode_id": "fm:spend-ceiling-missing",
+      "category": "spend_boundary",
+      "trigger": "The paid endpoint does not expose price, quota, retry, abort, or refund semantics before payment.",
+      "agent_next_action": "human_review",
+      "retry_allowed": false,
+      "safe_to_log": [
+        "request_id",
+        "estimated_price",
+        "currency",
+        "missing_contract_fields"
+      ],
+      "private_fields_forbidden": [
+        "wallet_private_key",
+        "payment_authorization",
+        "billing_profile"
+      ]
+    }
+  ],
+  "safe_to_log": [
+    "contract_id",
+    "profile",
+    "target.name",
+    "receipt.safe_to_log_receipt_id"
+  ],
+  "forbidden_inputs": [
+    "wallet private keys",
+    "payment authorization tokens",
+    "card data",
+    "billing profile records"
+  ],
+  "receipt": {
+    "schema_version": "atck.pre_action_receipt.v0.1",
+    "receipt_id": "receipt:x402-spend-ceiling:example",
+    "contract_id": "atck-example:x402-spend-ceiling:v0.1",
+    "action_type": "paid_endpoint_call",
+    "decision": "human_review",
+    "input_commitment": {
+      "hash_alg": "sha256",
+      "hash": "sha256:example-x402-contract-commitment",
+      "redaction_count": 0
+    },
+    "checks": [
+      {
+        "check_id": "spend_ceiling",
+        "status": "needs_review",
+        "reason": "Payment is blocked until the endpoint exposes a bounded spend ceiling and abort route.",
+        "contract_ref": "fm:spend-ceiling-missing"
+      }
+    ],
+    "safe_to_log_receipt_id": "safe-log:x402-spend-ceiling:example",
+    "next_action": "Ask for price, quota, retry, abort, refund, and safe-to-log receipt fields before payment."
+  },
+  "no_key_test": {
+    "local_validation": true,
+    "command": "node scripts/atck-check.js examples/pre-action/x402-spend-ceiling.json"
+  }
+}

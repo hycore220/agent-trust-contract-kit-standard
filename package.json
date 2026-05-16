@@ -1,0 +1,33 @@
+{
+  "name": "@agent-trust/contract-kit",
+  "version": "0.1.0",
+  "description": "Open Agent Trust Contract Kit standard, TypeScript validator, CLI, and conformance examples.",
+  "license": "Apache-2.0",
+  "type": "commonjs",
+  "bin": {
+    "atck-check": "dist/bin/atck-check.js"
+  },
+  "files": [
+    "dist",
+    "spec",
+    "examples",
+    "docs",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "npm run build && npm test",
+    "test": "node dist/tests/validator.test.js",
+    "atck:check": "node dist/bin/atck-check.js",
+    "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\""
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.10",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

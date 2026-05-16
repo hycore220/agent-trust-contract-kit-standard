@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-trust-contract-kit.local/spec/v0.1/payload-ceiling.schema.json",
+  "title": "ATCK Payload Ceiling v0.1",
+  "description": "Portable payload and logging limits for pre-action agent calls.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "payload_ceiling_id",
+    "limits",
+    "overflow_policy",
+    "safe_to_log",
+    "must_not_log"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "atck.payload_ceiling.v0.1"
+    },
+    "payload_ceiling_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_body_bytes",
+        "response_body_bytes",
+        "tool_result_bytes",
+        "agent_trust_fetch_bytes"
+      ],
+      "properties": {
+        "request_body_bytes": {
+          "type": "number"
+        },
+        "response_body_bytes": {
+          "type": "number"
+        },
+        "tool_result_bytes": {
+          "type": "number"
+        },
+        "agent_trust_fetch_bytes": {
+          "type": "number"
+        }
+      }
+    },
+    "overflow_policy": {
+      "type": "string",
+      "enum": [
+        "reject_before_call",
+        "summarize_before_call",
+        "human_review",
+        "stream_with_receipt"
+      ]
+    },
+    "safe_to_log": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "must_not_log": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "schema_version": "atck.pre_action_trust_contract.v0.1",
+  "contract_id": "atck-example:mcp-first-call:v0.1",
+  "profile": "mcp_first_call",
+  "action": {
+    "type": "mcp_first_call",
+    "summary": "Inspect a new MCP server before the first tool call.",
+    "risk_level": "medium"
+  },
+  "actor": {
+    "id": "agent:scout",
+    "kind": "agent"
+  },
+  "target": {
+    "name": "Example MCP Server",
+    "kind": "mcp_server",
+    "uri": "mcp://example.invalid"
+  },
+  "required_before_action": {
+    "first_safe_call": "tools/list only; no tool invocation until capability provenance and failure modes are present.",
+    "auth_boundary": "Do not send bearer tokens, API keys, OAuth codes, or private records during discovery.",
+    "human_review_required": false,
+    "failure_mode_ref": "fm:mcp-capability-provenance-missing",
+    "payload_ceiling_ref": "pc:mcp-discovery-small",
+    "duplicate_call_guard": "One tools/list call per target per discovery window."
+  },
+  "payload_ceiling": {
+    "schema_version": "atck.payload_ceiling.v0.1",
+    "payload_ceiling_id": "pc:mcp-discovery-small",
+    "limits": {
+      "request_body_bytes": 4096,
+      "response_body_bytes": 200000,
+      "tool_result_bytes": 0,
+      "agent_trust_fetch_bytes": 200000
+    },
+    "overflow_policy": "reject_before_call",
+    "safe_to_log": [
+      "request_id",
+      "server_name",
+      "capability_count",
+      "safe_to_log_receipt_id"
+    ],
+    "must_not_log": [
+      "authorization_header",
+      "api_key",
+      "oauth_code",
+      "private_tool_arguments"
+    ]
+  },
+  "failure_modes": [
+    {
+      "schema_version": "atck.failure_mode.v0.1",
+      "failure_mode_id": "fm:mcp-capability-provenance-missing",
+      "category": "trust_gap",
+      "trigger": "The MCP server exposes tools without capability provenance, auth boundary, or first-safe-call guidance.",
+      "agent_next_action": "refresh_contract",
+      "retry_allowed": false,
+      "safe_to_log": [
+        "request_id",
+        "server_name",
+        "missing_contract_fields"
+      ],
+      "private_fields_forbidden": [
+        "authorization_header",
+        "tool_arguments",
+        "private_records"
+      ]
+    }
+  ],
+  "safe_to_log": [
+    "contract_id",
+    "profile",
+    "target.name",
+    "receipt.safe_to_log_receipt_id"
+  ],
+  "forbidden_inputs": [
+    "plaintext API keys",
+    "OAuth codes",
+    "private customer records",
+    "tool invocation payloads"
+  ],
+  "receipt": {
+    "schema_version": "atck.pre_action_receipt.v0.1",
+    "receipt_id": "receipt:mcp-first-call:example",
+    "contract_id": "atck-example:mcp-first-call:v0.1",
+    "action_type": "mcp_first_call",
+    "decision": "human_review",
+    "input_commitment": {
+      "hash_alg": "sha256",
+      "hash": "sha256:example-mcp-discovery-commitment",
+      "redaction_count": 0
+    },
+    "checks": [
+      {
+        "check_id": "capability_provenance",
+        "status": "needs_review",
+        "reason": "The first safe call is limited to tools/list until provenance is present.",
+        "contract_ref": "fm:mcp-capability-provenance-missing"
+      }
+    ],
+    "safe_to_log_receipt_id": "safe-log:mcp-first-call:example",
+    "next_action": "Ask for capability provenance and failure-mode fields before invoking tools."
+  },
+  "no_key_test": {
+    "local_validation": true,
+    "command": "node scripts/atck-check.js examples/pre-action/mcp-first-call.json"
+  }
+}

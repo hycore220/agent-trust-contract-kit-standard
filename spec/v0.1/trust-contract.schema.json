@@ -1,0 +1,475 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-trust-contract-kit.local/spec/v0.1/trust-contract.schema.json",
+  "title": "ATCK Pre-Action Trust Contract v0.1",
+  "description": "A no-key, machine-readable contract for deciding whether an agent may proceed before a risky action.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "contract_id",
+    "profile",
+    "action",
+    "actor",
+    "target",
+    "required_before_action",
+    "payload_ceiling",
+    "failure_modes",
+    "safe_to_log",
+    "forbidden_inputs",
+    "receipt",
+    "no_key_test"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "atck.pre_action_trust_contract.v0.1"
+    },
+    "contract_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile": {
+      "type": "string",
+      "enum": [
+        "mcp_first_call",
+        "x402_spend_ceiling",
+        "payment_mandate_bridge",
+        "tool_failure_duplicate_call",
+        "external_write_guard",
+        "deploy_guard"
+      ]
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "summary",
+        "risk_level"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "mcp_first_call",
+            "paid_endpoint_call",
+            "external_write",
+            "external_post",
+            "deploy",
+            "multi_agent_handoff"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "agent",
+            "human_operator",
+            "service"
+          ]
+        }
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "kind"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "mcp_server",
+            "api",
+            "paid_endpoint",
+            "database",
+            "public_surface",
+            "deployment_target",
+            "agent"
+          ]
+        },
+        "uri": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "required_before_action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "first_safe_call",
+        "auth_boundary",
+        "human_review_required",
+        "failure_mode_ref",
+        "payload_ceiling_ref"
+      ],
+      "properties": {
+        "first_safe_call": {
+          "type": "string",
+          "minLength": 1
+        },
+        "auth_boundary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "human_review_required": {
+          "type": "boolean"
+        },
+        "failure_mode_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "payload_ceiling_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "spend_ceiling": {
+          "type": "string",
+          "minLength": 1
+        },
+        "duplicate_call_guard": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rollback_path": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "payload_ceiling": {
+      "$ref": "#/$defs/payload_ceiling"
+    },
+    "failure_modes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/failure_mode"
+      }
+    },
+    "safe_to_log": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "forbidden_inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "receipt": {
+      "$ref": "#/$defs/pre_action_receipt"
+    },
+    "no_key_test": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "local_validation",
+        "command"
+      ],
+      "properties": {
+        "local_validation": {
+          "type": "boolean"
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "$defs": {
+    "failure_mode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "failure_mode_id",
+        "category",
+        "trigger",
+        "agent_next_action",
+        "retry_allowed",
+        "safe_to_log",
+        "private_fields_forbidden"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "atck.failure_mode.v0.1"
+        },
+        "failure_mode_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "caller_correctable",
+            "policy_block",
+            "transient",
+            "unsafe_payload",
+            "trust_gap",
+            "duplicate_call_risk",
+            "spend_boundary"
+          ]
+        },
+        "trigger": {
+          "type": "string",
+          "minLength": 1
+        },
+        "agent_next_action": {
+          "type": "string",
+          "enum": [
+            "retry_after_repair",
+            "abort",
+            "human_review",
+            "backoff",
+            "refresh_contract",
+            "stop_duplicate"
+          ]
+        },
+        "retry_allowed": {
+          "type": "boolean"
+        },
+        "safe_to_log": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "private_fields_forbidden": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "payload_ceiling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "payload_ceiling_id",
+        "limits",
+        "overflow_policy",
+        "safe_to_log",
+        "must_not_log"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "atck.payload_ceiling.v0.1"
+        },
+        "payload_ceiling_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "request_body_bytes",
+            "response_body_bytes",
+            "tool_result_bytes",
+            "agent_trust_fetch_bytes"
+          ],
+          "properties": {
+            "request_body_bytes": {
+              "type": "number"
+            },
+            "response_body_bytes": {
+              "type": "number"
+            },
+            "tool_result_bytes": {
+              "type": "number"
+            },
+            "agent_trust_fetch_bytes": {
+              "type": "number"
+            }
+          }
+        },
+        "overflow_policy": {
+          "type": "string",
+          "enum": [
+            "reject_before_call",
+            "summarize_before_call",
+            "human_review",
+            "stream_with_receipt"
+          ]
+        },
+        "safe_to_log": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "must_not_log": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "pre_action_receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "receipt_id",
+        "contract_id",
+        "action_type",
+        "decision",
+        "input_commitment",
+        "checks",
+        "safe_to_log_receipt_id",
+        "next_action"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "atck.pre_action_receipt.v0.1"
+        },
+        "receipt_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "contract_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action_type": {
+          "type": "string",
+          "enum": [
+            "mcp_first_call",
+            "paid_endpoint_call",
+            "external_write",
+            "external_post",
+            "deploy",
+            "multi_agent_handoff"
+          ]
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "proceed",
+            "block",
+            "human_review",
+            "repair_then_retry"
+          ]
+        },
+        "input_commitment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "hash_alg",
+            "hash",
+            "redaction_count"
+          ],
+          "properties": {
+            "hash_alg": {
+              "type": "string",
+              "enum": [
+                "sha256"
+              ]
+            },
+            "hash": {
+              "type": "string",
+              "minLength": 1
+            },
+            "redaction_count": {
+              "type": "number"
+            }
+          }
+        },
+        "checks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "check_id",
+              "status",
+              "reason"
+            ],
+            "properties": {
+              "check_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pass",
+                  "fail",
+                  "needs_review"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              },
+              "contract_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "safe_to_log_receipt_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "next_action": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

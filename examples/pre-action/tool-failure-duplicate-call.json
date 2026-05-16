@@ -1,0 +1,110 @@
+{
+  "schema_version": "atck.pre_action_trust_contract.v0.1",
+  "contract_id": "atck-example:tool-failure-duplicate-call:v0.1",
+  "profile": "tool_failure_duplicate_call",
+  "action": {
+    "type": "multi_agent_handoff",
+    "summary": "Prevent two agents from repeating the same API call after an ambiguous tool failure.",
+    "risk_level": "medium"
+  },
+  "actor": {
+    "id": "agent:coordinator",
+    "kind": "agent"
+  },
+  "target": {
+    "name": "Downstream API Handoff",
+    "kind": "agent",
+    "uri": "agent://example-coordinator"
+  },
+  "required_before_action": {
+    "first_safe_call": "Check the shared receipt ledger before retrying or delegating the API call.",
+    "auth_boundary": "Do not copy raw tool payloads or credentials between agents.",
+    "human_review_required": false,
+    "failure_mode_ref": "fm:duplicate-call-risk",
+    "payload_ceiling_ref": "pc:handoff-receipt-only",
+    "duplicate_call_guard": "A retry requires the prior safe-to-log receipt id and an idempotency key.",
+    "rollback_path": "Stop duplicate and route to coordinator if receipt id or idempotency key is missing."
+  },
+  "payload_ceiling": {
+    "schema_version": "atck.payload_ceiling.v0.1",
+    "payload_ceiling_id": "pc:handoff-receipt-only",
+    "limits": {
+      "request_body_bytes": 4096,
+      "response_body_bytes": 65536,
+      "tool_result_bytes": 65536,
+      "agent_trust_fetch_bytes": 200000
+    },
+    "overflow_policy": "reject_before_call",
+    "safe_to_log": [
+      "request_id",
+      "idempotency_key",
+      "prior_receipt_id",
+      "safe_to_log_receipt_id"
+    ],
+    "must_not_log": [
+      "raw_tool_payload",
+      "authorization_header",
+      "private_records",
+      "customer_data"
+    ]
+  },
+  "failure_modes": [
+    {
+      "schema_version": "atck.failure_mode.v0.1",
+      "failure_mode_id": "fm:duplicate-call-risk",
+      "category": "duplicate_call_risk",
+      "trigger": "A retry or handoff is requested without a prior receipt id, idempotency key, or downstream stop condition.",
+      "agent_next_action": "stop_duplicate",
+      "retry_allowed": false,
+      "safe_to_log": [
+        "request_id",
+        "idempotency_key",
+        "prior_receipt_id",
+        "missing_contract_fields"
+      ],
+      "private_fields_forbidden": [
+        "raw_tool_payload",
+        "authorization_header",
+        "customer_data"
+      ]
+    }
+  ],
+  "safe_to_log": [
+    "contract_id",
+    "profile",
+    "target.name",
+    "receipt.safe_to_log_receipt_id"
+  ],
+  "forbidden_inputs": [
+    "raw tool payloads",
+    "authorization headers",
+    "private records",
+    "customer data"
+  ],
+  "receipt": {
+    "schema_version": "atck.pre_action_receipt.v0.1",
+    "receipt_id": "receipt:tool-failure-duplicate-call:example",
+    "contract_id": "atck-example:tool-failure-duplicate-call:v0.1",
+    "action_type": "multi_agent_handoff",
+    "decision": "block",
+    "input_commitment": {
+      "hash_alg": "sha256",
+      "hash": "sha256:example-duplicate-call-commitment",
+      "redaction_count": 1
+    },
+    "checks": [
+      {
+        "check_id": "duplicate_call_guard",
+        "status": "fail",
+        "reason": "The retry is blocked until prior receipt id and idempotency key are present.",
+        "contract_ref": "fm:duplicate-call-risk"
+      }
+    ],
+    "safe_to_log_receipt_id": "safe-log:tool-failure-duplicate-call:example",
+    "next_action": "Stop the duplicate call and ask the coordinator for prior receipt id, idempotency key, and downstream stop condition."
+  },
+  "no_key_test": {
+    "local_validation": true,
+    "command": "node scripts/atck-check.js examples/pre-action/tool-failure-duplicate-call.json"
+  }
+}

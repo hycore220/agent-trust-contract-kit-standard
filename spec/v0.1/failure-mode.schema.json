@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-trust-contract-kit.local/spec/v0.1/failure-mode.schema.json",
+  "title": "ATCK Failure Mode v0.1",
+  "description": "Portable failure semantics for an agent before retrying, aborting, escalating, or chaining a risky action.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "failure_mode_id",
+    "category",
+    "trigger",
+    "agent_next_action",
+    "retry_allowed",
+    "safe_to_log",
+    "private_fields_forbidden"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "atck.failure_mode.v0.1"
+    },
+    "failure_mode_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "caller_correctable",
+        "policy_block",
+        "transient",
+        "unsafe_payload",
+        "trust_gap",
+        "duplicate_call_risk",
+        "spend_boundary"
+      ]
+    },
+    "trigger": {
+      "type": "string",
+      "minLength": 1
+    },
+    "agent_next_action": {
+      "type": "string",
+      "enum": [
+        "retry_after_repair",
+        "abort",
+        "human_review",
+        "backoff",
+        "refresh_contract",
+        "stop_duplicate"
+      ]
+    },
+    "retry_allowed": {
+      "type": "boolean"
+    },
+    "safe_to_log": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "private_fields_forbidden": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

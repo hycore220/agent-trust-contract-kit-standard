@@ -1,0 +1,116 @@
+{
+  "schema_version": "atck.pre_action_trust_contract.v0.1",
+  "contract_id": "atck-example:ap2-mandate-bridge:v0.1",
+  "profile": "payment_mandate_bridge",
+  "action": {
+    "type": "paid_endpoint_call",
+    "summary": "Bridge a delegated payment mandate into a pre-action receipt before an agent spends.",
+    "risk_level": "high"
+  },
+  "actor": {
+    "id": "agent:delegated-buyer",
+    "kind": "agent"
+  },
+  "target": {
+    "name": "Example Agent Payment Mandate",
+    "kind": "paid_endpoint",
+    "uri": "https://payments.example.invalid/mandates/preview"
+  },
+  "required_before_action": {
+    "first_safe_call": "Preview mandate scope, merchant identity, max amount, currency, expiration, and revocation route without spending.",
+    "auth_boundary": "Do not include payment credentials, wallet keys, session cookies, or raw user identity in the contract packet.",
+    "human_review_required": true,
+    "failure_mode_ref": "fm:mandate-scope-ambiguous",
+    "payload_ceiling_ref": "pc:payment-mandate-small",
+    "spend_ceiling": "Block if max amount, currency, merchant identity, mandate expiration, or revocation route is absent.",
+    "rollback_path": "Abort mandate execution and keep only a redacted pre-action receipt when scope is ambiguous."
+  },
+  "payload_ceiling": {
+    "schema_version": "atck.payload_ceiling.v0.1",
+    "payload_ceiling_id": "pc:payment-mandate-small",
+    "limits": {
+      "request_body_bytes": 8192,
+      "response_body_bytes": 200000,
+      "tool_result_bytes": 200000,
+      "agent_trust_fetch_bytes": 200000
+    },
+    "overflow_policy": "human_review",
+    "safe_to_log": [
+      "mandate_id",
+      "merchant_name",
+      "max_amount",
+      "currency",
+      "expiration",
+      "safe_to_log_receipt_id"
+    ],
+    "must_not_log": [
+      "payment_credentials",
+      "wallet_private_key",
+      "session_cookie",
+      "raw_user_identity",
+      "billing_profile"
+    ]
+  },
+  "failure_modes": [
+    {
+      "schema_version": "atck.failure_mode.v0.1",
+      "failure_mode_id": "fm:mandate-scope-ambiguous",
+      "category": "spend_boundary",
+      "trigger": "The delegated payment mandate does not expose enough machine-readable scope before execution.",
+      "agent_next_action": "human_review",
+      "retry_allowed": false,
+      "safe_to_log": [
+        "mandate_id",
+        "merchant_name",
+        "max_amount",
+        "currency",
+        "missing_contract_fields"
+      ],
+      "private_fields_forbidden": [
+        "payment_credentials",
+        "wallet_private_key",
+        "raw_user_identity",
+        "billing_profile"
+      ]
+    }
+  ],
+  "safe_to_log": [
+    "contract_id",
+    "profile",
+    "target.name",
+    "receipt.safe_to_log_receipt_id"
+  ],
+  "forbidden_inputs": [
+    "payment credentials",
+    "wallet private keys",
+    "session cookies",
+    "raw user identity",
+    "billing profile records"
+  ],
+  "receipt": {
+    "schema_version": "atck.pre_action_receipt.v0.1",
+    "receipt_id": "receipt:ap2-mandate-bridge:example",
+    "contract_id": "atck-example:ap2-mandate-bridge:v0.1",
+    "action_type": "paid_endpoint_call",
+    "decision": "human_review",
+    "input_commitment": {
+      "hash_alg": "sha256",
+      "hash": "sha256:example-ap2-mandate-commitment",
+      "redaction_count": 0
+    },
+    "checks": [
+      {
+        "check_id": "mandate_scope",
+        "status": "needs_review",
+        "reason": "Payment execution is blocked until mandate scope, ceiling, expiration, and revocation route are explicit.",
+        "contract_ref": "fm:mandate-scope-ambiguous"
+      }
+    ],
+    "safe_to_log_receipt_id": "safe-log:ap2-mandate-bridge:example",
+    "next_action": "Ask for merchant identity, max amount, currency, expiration, revocation route, and safe-to-log receipt fields before spending."
+  },
+  "no_key_test": {
+    "local_validation": true,
+    "command": "node scripts/atck-check.js examples/pre-action/ap2-mandate-bridge.json"
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-trust-contract-kit.local/spec/v0.1/pre-action-receipt.schema.json",
+  "title": "ATCK Pre-Action Receipt v0.1",
+  "description": "A compact, safe-to-log receipt for the decision made before an agent acts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "receipt_id",
+    "contract_id",
+    "action_type",
+    "decision",
+    "input_commitment",
+    "checks",
+    "safe_to_log_receipt_id",
+    "next_action"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "atck.pre_action_receipt.v0.1"
+    },
+    "receipt_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contract_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "mcp_first_call",
+        "paid_endpoint_call",
+        "external_write",
+        "external_post",
+        "deploy",
+        "multi_agent_handoff"
+      ]
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "proceed",
+        "block",
+        "human_review",
+        "repair_then_retry"
+      ]
+    },
+    "input_commitment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hash_alg",
+        "hash",
+        "redaction_count"
+      ],
+      "properties": {
+        "hash_alg": {
+          "type": "string",
+          "enum": [
+            "sha256"
+          ]
+        },
+        "hash": {
+          "type": "string",
+          "minLength": 1
+        },
+        "redaction_count": {
+          "type": "number"
+        }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "check_id",
+          "status",
+          "reason"
+        ],
+        "properties": {
+          "check_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "fail",
+              "needs_review"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "contract_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "safe_to_log_receipt_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "next_action": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
