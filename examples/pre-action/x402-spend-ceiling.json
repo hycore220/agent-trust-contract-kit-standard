@@ -105,6 +105,6 @@
   },
   "no_key_test": {
     "local_validation": true,
-    "command": "node scripts/atck-check.js examples/pre-action/x402-spend-ceiling.json"
+    "command": "node dist/bin/atck-check.js examples/pre-action/x402-spend-ceiling.json"
   }
 }

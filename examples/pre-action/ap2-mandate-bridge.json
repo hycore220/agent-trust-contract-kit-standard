@@ -111,6 +111,6 @@
   },
   "no_key_test": {
     "local_validation": true,
-    "command": "node scripts/atck-check.js examples/pre-action/ap2-mandate-bridge.json"
+    "command": "node dist/bin/atck-check.js examples/pre-action/ap2-mandate-bridge.json"
   }
 }

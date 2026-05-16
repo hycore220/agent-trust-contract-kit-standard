@@ -103,6 +103,6 @@
   },
   "no_key_test": {
     "local_validation": true,
-    "command": "node scripts/atck-check.js examples/pre-action/mcp-first-call.json"
+    "command": "node dist/bin/atck-check.js examples/pre-action/mcp-first-call.json"
   }
 }

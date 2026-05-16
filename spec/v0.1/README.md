@@ -22,10 +22,10 @@ The public spec is intentionally portable. It does not require a hosted API.
 ## Local Validation
 
 ```powershell
-node scripts\atck-check.js examples/pre-action/mcp-first-call.json
-node scripts\atck-check.js examples/pre-action/x402-spend-ceiling.json
-node scripts\atck-check.js examples/pre-action/ap2-mandate-bridge.json
-node scripts\atck-check.js examples/pre-action/tool-failure-duplicate-call.json
+node dist\bin\atck-check.js examples/pre-action/mcp-first-call.json
+node dist\bin\atck-check.js examples/pre-action/x402-spend-ceiling.json
+node dist\bin\atck-check.js examples/pre-action/ap2-mandate-bridge.json
+node dist\bin\atck-check.js examples/pre-action/tool-failure-duplicate-call.json
 ```
 
 These checks are local and no-key. They validate public contract shape only; they do not approve real execution, spend, deployment, legal claims, or security-sensitive changes.
