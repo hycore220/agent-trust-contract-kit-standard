@@ -9,6 +9,7 @@
 
 ## Near Term
 
+- Collect feedback on RFC 0001 shared action receipts for duplicate agent calls.
 - Add more invalid fixtures.
 - Add OpenAPI compatibility examples.
 - Add MCP server manifest compatibility examples.

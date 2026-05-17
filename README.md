@@ -39,6 +39,14 @@ node dist/bin/atck-check.js examples/pre-action/tool-failure-duplicate-call.json
 - `tests/`: conformance tests for examples, schema inference, and failure cases.
 - `docs/`: standard notes and contribution guidance.
 
+## Open Drafts
+
+- [RFC 0001: Shared Action Receipts For Duplicate Agent Calls](docs/rfcs/0001-shared-action-receipts.md)
+
+The first RFC asks a concrete question for agent builders: what is the smallest
+safe-to-log field set that stops one agent from repeating another agent's API
+call, paid request, write, or handoff?
+
 ## Design Principles
 
 1. No-key first: public discovery must be useful before signup or secret exchange.
@@ -51,6 +59,7 @@ node dist/bin/atck-check.js examples/pre-action/tool-failure-duplicate-call.json
 
 Good first contributions:
 
+- comment on an open RFC with one missing field, ambiguous rule, or failure case
 - add a new synthetic danger-moment example
 - improve failure-mode taxonomy
 - add payload-ceiling edge cases
